@@ -1,0 +1,121 @@
+package org.example;
+
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvValidationException;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.Date;
+
+public class Main {
+    public static void main(String[] args) throws IOException, CsvValidationException {
+
+
+
+        File file = new File("o:\\Prog\\csv\\");
+
+        Date data = new Date();
+        SimpleDateFormat form = new SimpleDateFormat("dd.MM.yyyy");
+
+        FilenameFilter myFilter = new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.endsWith(".csv");
+            }
+        };
+
+        File[] spisok = file.listFiles(myFilter);
+        String today = form.format(data);
+        System.out.println(today);
+
+        for(File f : spisok){
+            String sd = form.format(f.lastModified());
+            if(sd.equals(today)){
+                //Сюда вставить код с экселем
+
+                CSVReader readerForName = new CSVReaderBuilder(new FileReader(f))
+                        .withCSVParser(new CSVParserBuilder()
+                                .withSeparator('\t')
+                                .build())
+                        .build();
+                String [] nextLine = readerForName.readNext();
+                String gtin = "";
+                String tnvd = "";
+                String name = "";
+                //System.out.println(nextLine[0]);
+                switch(nextLine[1]){
+                    case "04620115140154":
+                        gtin = "Sm";
+                        tnvd = "0403905900";
+                        name = "Smetana, 150 g";
+                        break;
+
+                    case "04620115140161":
+                        gtin = "Tv";
+                        tnvd = "0406105002";
+                        name = "Tvorog, 100 g";
+                        break;
+
+                    case "04620115140130":
+                        gtin = "Yog";
+                        tnvd = "0403201300";
+                        name = "Yogurt, 150 g";
+                        break;
+                }
+
+                //File file1 = new File("data.csv");
+                long timestamp = f.lastModified();
+
+                Instant date = Instant.now();
+
+                String str = date.toString().substring(8,10)+date.toString().substring(5,7)+gtin;
+                Workbook wb = new HSSFWorkbook();
+                Sheet sheet1 = wb.createSheet("List1");
+
+                int i = 0;
+
+                CSVReader reader = new CSVReaderBuilder(new FileReader(f))
+                        .withCSVParser(new CSVParserBuilder()
+                                .withSeparator('\t')
+                                .build())
+                        .build();
+                String [] nextLine1;
+
+                while ((nextLine1 = reader.readNext()) != null) {
+                    Row row = sheet1.createRow(i);
+                    Cell cell = row.createCell(0);
+                    cell.setCellValue(nextLine1[0]);
+                    cell = row.createCell(1);
+                    cell.setCellValue(nextLine1[1]);
+                    cell = row.createCell(2);
+                    cell.setCellValue(name);
+                    cell = row.createCell(3);
+                    cell.setCellValue(tnvd);
+                    i++;
+                }
+
+                FileOutputStream fos = new FileOutputStream(str+".xls");
+
+                wb.write(fos);
+                fos.close();
+
+
+            }
+
+        }
+
+
+
+
+    }
+
+
+}
